@@ -1,8 +1,8 @@
 {
-  "name": "lightningcss",
+  "name": "@ohos-ports/lightningcss",
   "version": "1.32.0",
   "license": "MPL-2.0",
-  "description": "A CSS parser, transformer, and minifier written in Rust",
+  "description": "A CSS parser, transformer, and minifier written in Rust — OpenHarmony (OHOS) port, self-contained with the linux-arm64-ohos native binding bundled. Transitional package until parcel-bundler/lightningcss#1264 merges upstream.",
   "main": "node/index.js",
   "types": "node/index.d.ts",
   "exports": {
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/parcel-bundler/lightningcss.git"
+    "url": "https://github.com/social4hyq/lightningcss.git"
   },
   "engines": {
     "node": ">= 12.0.0"
@@ -36,7 +36,8 @@
     "node/*.js",
     "node/*.mjs",
     "node/*.d.ts",
-    "node/*.flow"
+    "node/*.flow",
+    "lightningcss.linux-arm64-ohos.node"
   ],
   "dependencies": {
     "detect-libc": "^2.0.3"

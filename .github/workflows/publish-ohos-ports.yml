@@ -1,0 +1,74 @@
+name: Publish @ohos-ports/lightningcss
+
+# Transitional package: bundles the OHOS native binding directly into a
+# self-contained republish under @ohos-ports/lightningcss, so OHOS projects
+# can `bun add`/`npm i` it today without waiting for parcel-bundler/lightningcss#1264
+# to merge upstream. Deprecate this package once the upstream PR lands and
+# publishes the official lightningcss-linux-arm64-ohos platform package.
+#
+# Runs off the ohos-ports-release branch (packaging-only changes), not
+# master (which is the live upstream PR #1264 branch — must stay unpolluted).
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ohos-ports-release
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup rust target
+        run: rustup target add aarch64-unknown-linux-ohos
+
+      - name: Setup OpenHarmony SDK
+        uses: Boshen/setup-ohos-sdk@edb865a89a712f1f15dbad932dfa9cfce849d95c # v1.0.0
+
+      - name: Configure OHOS linker
+        run: |
+          echo "${OHOS_SDK_NATIVE}/llvm/bin" >> $GITHUB_PATH
+          cat > /tmp/aarch64-linux-ohos-clang <<'WRAPPER'
+          #!/bin/sh
+          exec ${OHOS_SDK_NATIVE}/llvm/bin/clang --target=aarch64-linux-ohos "$@"
+          WRAPPER
+          chmod +x /tmp/aarch64-linux-ohos-clang
+
+      - uses: bahmutov/npm-install@v1.8.32
+
+      - name: Build release
+        run: yarn build-release
+        env:
+          RUST_TARGET: aarch64-unknown-linux-ohos
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_OHOS_LINKER: /tmp/aarch64-linux-ohos-clang
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_OHOS_RUSTFLAGS: -C link-arg=-fuse-ld=lld -C link-arg=-lm
+
+      - name: Strip debug symbols
+        run: llvm-strip *.node
+
+      - name: Sign native binding (ohos-bst-light self-sign)
+        run: python3 scripts/ohos/self-sign.py lightningcss.linux-arm64-ohos.node
+
+      - name: Verify package contents
+        run: |
+          test -f lightningcss.linux-arm64-ohos.node
+          node -e "console.log(require('./package.json').name)" | grep -q '@ohos-ports/lightningcss'
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
