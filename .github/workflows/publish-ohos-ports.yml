@@ -11,6 +11,13 @@ name: Publish @ohos-ports/lightningcss
 
 on:
   workflow_dispatch:
+  # workflow_dispatch alone requires the workflow file to exist on the
+  # default branch (master here — which is the live upstream PR #1264
+  # branch, so it can't carry this file). Trigger on push to this branch
+  # instead, which has no such requirement.
+  push:
+    branches:
+      - ohos-ports-release
 
 permissions:
   contents: read
