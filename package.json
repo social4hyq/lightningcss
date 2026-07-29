@@ -1,6 +1,6 @@
 {
   "name": "@ohos-ports/lightningcss",
-  "version": "1.32.0",
+  "version": "1.33.0",
   "license": "MPL-2.0",
   "description": "A CSS parser, transformer, and minifier written in Rust — OpenHarmony (OHOS) port, self-contained with the linux-arm64-ohos native binding bundled. Transitional package until parcel-bundler/lightningcss#1264 merges upstream.",
   "main": "node/index.js",
